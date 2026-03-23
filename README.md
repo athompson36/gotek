@@ -16,6 +16,18 @@ Personal workspace for **Ensoniq VFX-SD** Gotek (FlashFloppy) setup: disk librar
 
 Generated rack builds go under `ensoniq-vfx-sd/VFX-RACK-BUILD/` when you create them; that path is gitignored.
 
+### Build the indexed USB contents
+
+From the repo root:
+
+```bash
+python3 scripts/build_vfx_rack.py
+```
+
+This scans `ensoniq-vfx-sd/VFX-SD Backup/`, deduplicates by SHA-256, copies unique images as `DSKA####_*.{IMG,HFE}`, writes merged `FF.CFG` / `IMG.CFG`, and emits `VFX_RACK_CATALOG.md`, `VFX_RACK_CATALOG.json`, and `DUPLICATES_REPORT.md` into `VFX-RACK-BUILD/`.
+
+Checklist: [`docs/VFX-SD-TODO.md`](docs/VFX-SD-TODO.md).
+
 ## Clone and push
 
 ```bash
