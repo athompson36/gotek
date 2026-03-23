@@ -1,0 +1,392 @@
+Ensoniq VFX-SD Gotek Migration Context
+
+Goal
+
+Convert an existing Ensoniq VFX-SD Gotek USB setup from fragile FlashFloppy native-navigation mode to a robust FlashFloppy indexed rack with descriptive on-screen labels.
+
+This context is intended for Cursor so it can safely rename, organize, and catalog the disk images without repeating the trial-and-error that already happened.
+
+Repository layout (project root = gotek folder)
+
+	•	VFX-SD disk library and current FlashFloppy configs live under:
+	•	gotek/ensoniq-vfx-sd/VFX-SD Backup/
+	•	Example absolute path on the primary dev machine:
+	•	/Users/andrew/Documents/fs-tech/gotek/ensoniq-vfx-sd/VFX-SD Backup/
+	•	Indexed rack build output should live under gotek/ensoniq-vfx-sd/ (not on the USB), for example:
+	•	gotek/ensoniq-vfx-sd/VFX-RACK-BUILD/
+
+⸻
+
+Confirmed Working Environment
+
+Hardware
+	•	Synth: Ensoniq VFX-SD
+	•	Gotek model: SFRKC30.AT2
+	•	Gotek has rotary encoder
+	•	Confirmed firmware on the current VFX Gotek: FlashFloppy 3.29
+
+Host computer
+	•	macOS
+	•	User path root: /Users/andrew
+
+Relevant disk / USB notes
+	•	Working USB device used during recovery: /dev/disk18
+	•	Desired mounted volume name: GOTEK
+
+Backup folder currently in use
+	•	gotek/ensoniq-vfx-sd/VFX-SD Backup/
+
+⸻
+
+What Was Diagnosed
+
+Original problem
+
+The VFX-SD Gotek setup had previously worked. After mounting the USB on macOS, creating a ZIP archive on the USB itself, copying it off, and deleting the ZIP from the USB root, the Gotek could still browse files and folders but failed to load disks, reporting:
+	•	file not found
+	•	later confirmed as file does not exist
+
+Root cause
+
+The setup was using FlashFloppy native-navigation behavior with long filenames and IMAGE_A.CFG. In that mode, FlashFloppy can still display files after filesystem changes, but its internal navigation / file resolution can break when macOS rewrites directory entries or FAT allocation details.
+
+Key confirmation
+
+After switching to indexed mode and renaming at least one image to:
+	•	DSKA0000.IMG
+
+the image loaded successfully.
+
+That confirms:
+	•	the hardware is good
+	•	the USB format is good when properly rebuilt
+	•	the image format is good
+	•	FlashFloppy indexed mode is the correct long-term solution
+
+⸻
+
+Important Conclusions
+	1.	Do not use native navigation mode for this project going forward.
+	•	Avoid relying on long filenames and folder browsing on the Gotek.
+	•	Avoid dependence on IMAGE_A.CFG for active use.
+	2.	Use FlashFloppy indexed mode.
+	•	Files should be named like DSKA0000.IMG, DSKA0001.IMG, etc.
+	3.	Use descriptive labels via IMG.CFG.
+	•	This preserves user-friendly names on the Gotek display while keeping the robustness of indexed mode.
+	4.	Do not create ZIPs, temp files, or edit files directly on the Gotek USB.
+	•	Always work from a local Mac folder.
+	•	Rebuild the USB from clean local files.
+
+⸻
+
+Current Known Backup Folder Contents
+
+At one point the backup folder contained:
+
+ATW/
+Blanks/
+Ensoniq/
+FF.CFG
+IMAGE_A.CFG
+Stock Library Disk.img
+VFX SD OS 2.10.img
+
+Later, after initial successful indexed testing, the folder also showed:
+
+ATW/
+Blanks/
+Ensoniq/
+DSKA0000.IMG
+DSKA0001.IMG
+FF.CFG
+IMAGE_A.CFG
+
+This means some manual renaming already occurred during recovery.
+
+⸻
+
+Desired Final Structure
+
+The final USB should be a clean indexed rack with files in the root like:
+
+FF.CFG
+IMG.CFG
+DSKA0000.IMG
+DSKA0001.IMG
+DSKA0002.IMG
+DSKA0003.IMG
+...
+
+Meaning
+	•	DSKA0000.IMG should remain the VFX-SD OS disk
+	•	all other VFX-SD library / blank / utility disks should be assigned sequentially after that
+	•	IMG.CFG should map slot numbers to descriptive labels for display on the Gotek
+
+⸻
+
+Required FlashFloppy Configuration
+
+FF.CFG should use indexed mode and Ensoniq-compatible behavior.
+
+Required settings:
+
+nav-mode = indexed
+host = ensoniq
+interface = shugart
+pin34 = ready
+display-type = auto
+autoselect-file = yes
+
+If existing FF.CFG contains additional settings, preserve them unless they conflict with the above.
+
+Priority is to ensure the final file definitely includes the lines above.
+
+⸻
+
+IMG.CFG Strategy
+
+Use IMG.CFG to preserve human-readable labels.
+
+Example format:
+
+000 = VFX SD OS 2.10
+001 = Stock Library Disk
+002 = ATW Pads Vol 1
+003 = Ensoniq Factory Bank A
+004 = Blank Disk 01
+
+Rules
+	•	Slot 000 must describe the OS disk
+	•	Labels should come from original descriptive filenames where possible
+	•	Keep labels concise enough for Gotek display readability
+	•	Avoid needlessly cryptic abbreviations unless necessary for display length
+
+⸻
+
+Source Discovery Rules for Cursor
+
+Cursor should scan gotek/ensoniq-vfx-sd/VFX-SD Backup/ recursively for disk images (.img / .IMG and .hfe / .HFE).
+
+Include
+	•	disk images in the backup root (e.g. VFX SD OS 2.10.img, Stock Library Disk.img)
+	•	disk images inside subfolders such as:
+	•	ATW
+	•	Blanks
+	•	Ensoniq
+
+Exclude
+	•	IMAGE_A.CFG from the final indexed USB build
+	•	.DS_Store
+	•	._*
+	•	any __MACOSX artifacts
+	•	ZIP files (including VFX-SD Backup.zip — keep as archive only, not part of the indexed USB)
+	•	non-disk metadata files unless explicitly needed
+
+Normalization
+	•	Treat .img and .IMG equivalently when scanning; treat .hfe and .HFE equivalently
+	•	Final rack output should use consistent extensions (uppercase .IMG and/or .HFE as appropriate per source format)
+
+⸻
+
+Slot Assignment Rules
+
+Cursor should organize the rack using deterministic rules.
+
+Required slot policy
+	•	DSKA0000.IMG = VFX-SD OS disk
+
+Preferred identification logic for OS disk
+
+Match any source image whose name strongly suggests:
+	•	VFX SD OS 2.10
+	•	VFX-SD OS
+	•	OS 2.10
+
+If an already-renamed DSKA0000.IMG exists and is known-good, that may be preserved as the OS slot.
+
+Remaining disks
+
+Assign all remaining unique disk images sequentially beginning at:
+	•	DSKA0001.IMG
+
+Ordering recommendation
+
+Use stable deterministic ordering, ideally:
+	1.	root-level named library disks
+	2.	ATW disks
+	3.	Ensoniq disks
+	4.	Blanks disks
+
+Or, alternatively, alphabetical by full relative path after reserving slot 000 for the OS disk.
+
+Whichever ordering is chosen, Cursor should:
+	•	apply it consistently
+	•	generate a catalog documenting source path -> assigned slot -> display label
+
+⸻
+
+Deduplication Guidance
+
+Cursor should detect likely duplicates before assigning slots.
+
+Potential duplicate cases:
+	•	same filename appearing in multiple folders
+	•	same file size and identical checksum
+	•	previously renamed DSKAxxxx.IMG files that duplicate original named source images
+
+Recommended dedupe method
+
+Use checksums to identify exact duplicates.
+
+If duplicates exist:
+	•	keep one canonical copy in the indexed rack
+	•	note duplicates in the catalog
+	•	do not silently discard without logging the decision
+
+⸻
+
+Recommended Deliverables From Cursor
+
+Cursor should produce the following inside a new build/output folder, not directly on the USB:
+
+1. Indexed rack folder
+
+Example:
+	•	gotek/ensoniq-vfx-sd/VFX-RACK-BUILD/
+
+Containing:
+	•	FF.CFG
+	•	IMG.CFG
+	•	DSKA0000.IMG
+	•	DSKA0001.IMG
+	•	etc.
+
+2. Catalog file
+
+Create a human-readable catalog such as:
+	•	VFX_RACK_CATALOG.md
+
+Include columns / fields:
+	•	slot number
+	•	indexed filename
+	•	display label
+	•	original source filename
+	•	original source relative path
+	•	file size
+	•	checksum (recommended)
+	•	notes
+
+3. Optional machine-readable catalog
+
+Example:
+	•	VFX_RACK_CATALOG.csv
+	•	or VFX_RACK_CATALOG.json
+
+4. Optional duplicate report
+
+Example:
+	•	DUPLICATES_REPORT.md
+
+⸻
+
+Safety Rules
+
+Cursor should follow these rules strictly:
+	1.	Do not modify the original backup folder destructively.
+	•	Work from copies
+	•	Preserve original backup files
+	2.	Do not write temporary files into the USB root during organization.
+	•	Build locally first
+	3.	Do not include IMAGE_A.CFG in the final indexed USB build.
+	•	It belongs to the fragile native-navigation workflow we are abandoning
+	4.	Do not rely on Finder ordering or macOS metadata.
+	•	Ignore .DS_Store, ._*, Spotlight files, and Trash files
+	5.	Do not assume every disk image is unique.
+	•	Verify with checksum when possible
+	6.	Do not rename source files in place unless explicitly asked.
+	•	Preferred approach is to copy into a new indexed build folder
+
+⸻
+
+USB Deployment Process
+
+Once Cursor has built the rack locally, the deployment process should be:
+
+Reformat USB
+
+diskutil eraseDisk FAT32 GOTEK MBRFormat /dev/disk18
+
+Copy build output to USB
+
+From the final build folder, copy every indexed disk image to the USB root (use whichever extensions exist in the build, e.g. DSKA*.IMG and/or DSKA*.HFE):
+
+cp DSKA*.IMG /Volumes/GOTEK/
+cp DSKA*.HFE /Volumes/GOTEK/
+cp FF.CFG /Volumes/GOTEK/
+cp IMG.CFG /Volumes/GOTEK/
+sync
+
+(If one of the DSKA globs matches nothing, the shell may error; run only the lines that apply to your build.)
+
+Clean metadata if needed
+
+dot_clean /Volumes/GOTEK
+find /Volumes/GOTEK -name "._*" -delete
+rm -rf /Volumes/GOTEK/.DS_Store
+rm -rf /Volumes/GOTEK/.Spotlight-V100
+rm -rf /Volumes/GOTEK/.Trashes
+sync
+
+Eject
+
+diskutil eject /dev/disk18
+
+
+⸻
+
+Success Criteria
+
+The project is successful when:
+	1.	The Gotek boots with FlashFloppy 3.29
+	2.	Slot 000 loads successfully as the VFX-SD OS disk
+	3.	Other indexed slots load without file does not exist
+	4.	The Gotek displays descriptive disk labels via IMG.CFG
+	5.	The user no longer needs to cross-reference raw DSKAxxxx names manually
+	6.	The resulting rack is reproducible from the local build folder
+
+⸻
+
+Suggested Cursor Task Breakdown
+	1.	Scan gotek/ensoniq-vfx-sd/VFX-SD Backup/ recursively for valid disk images (.img / .hfe)
+	2.	Identify the correct OS image and reserve it for slot 000
+	3.	Detect and report duplicates
+	4.	Create a new rack build folder
+	5.	Copy / rename all selected images into indexed filenames
+	6.	Generate IMG.CFG labels from original names
+	7.	Merge or rewrite FF.CFG with required indexed-mode settings
+	8.	Generate human-readable catalog and optional CSV/JSON catalog
+	9.	Leave original source files untouched
+
+⸻
+
+Notes for Future Expansion
+
+This workflow can later be extended to:
+	•	multiple themed USB rack sets
+	•	automatic blank disk initialization strategy
+	•	label length optimization for specific Gotek displays
+	•	checksum verification against known-good images
+	•	a one-command rebuild script for macOS or Linux
+
+⸻
+
+Short Summary
+
+The correct long-term solution for this VFX-SD Gotek is:
+	•	FlashFloppy 3.29
+	•	indexed mode
+	•	DSKAxxxx slot files (.IMG and/or .HFE, matching source format)
+	•	descriptive labels via IMG.CFG
+	•	no IMAGE_A.CFG in the final deployed rack
+	•	local build workflow only, never edit directly on the USB
+	•	source library under gotek/ensoniq-vfx-sd/VFX-SD Backup/, rack build under gotek/ensoniq-vfx-sd/ (e.g. VFX-RACK-BUILD/)

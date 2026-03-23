@@ -1,0 +1,870 @@
+************************************
+** FlashFloppy Release Notes
+** Keir Fraser <keir.xen@gmail.com>
+************************************
+
+** v3.44 - 12 April 2025
+ - Apple2: Replacement bootloader for AT2 (QFN32) Goteks
+ - AT32F415: Fix entry to "update mode" from main menu
+ - FF.CFG: Document the 7-char limit on indexed-prefix option
+
+** v3.43 - 22 January 2025
+ - Apple2: Read/write HFE images using alt firmware
+ - D81: Various fixes
+   - Support D1M/D2M/D4M extensions
+   - Support CMD third-party 1.6M and 3.2M image formats
+   - Invert sector header H byte
+   - No track Index Address Mark (IAM)
+ - TRDOS: All sectors have header H byte set to zero
+
+** v3.42 - 11 January 2024
+ - HFEv3: Various read/write improvements
+ - WDATA: Merge short write pulses, and apply de-jitter/precomp
+ - IMG, EDSK: Stream large sector writes to flash
+
+** v3.41 - 14 July 2023
+ - AT32F415: Fix timer handling since clock speed increase (v3.39).
+ - LCD: Faster power-on initialisation. Don't wait for display to clear.
+
+** v3.40 - 27 June 2023
+ - XDF: Fix writes to side 1 of XDF disk images
+ - HFE: Better handling of long No Flux Areas
+ - QuickDisk: Reduce motor spinup time to 1 second (previously 2 seconds)
+ - LCD: Completely blank display when backlight is off
+
+** v3.39 - 1 March 2023
+ - AT32F415: Run this MCU at 144MHz (previously 72MHz).
+ - HFE: Fix HFEv3 support. Support Dungeon Master & Chaos Strikes Back.
+ - IMG.CFG: Support mixed sector sizes per track (Ensoniq Mirage etc).
+ - IMG.CFG: New option img_bps= allows padding of short sectors in IMG files.
+ - FF.CFG: New option notify-volume= for notifying on insert/eject events.
+ - FF.CFG: New OLED display sub-option 'hflip' horizontally flips display.
+ - Various other small fixes.
+
+** v3.38 - 4 December 2022
+ - AT32F435: Fix RDATA release on drive deassert
+ - SF7: Support Sega SF-7000 *.SF7 images
+
+** v3.37 - 20 October 2022
+ - Amiga: Fix firmware crash when mounting read-only disk image
+   - Since v3.36 when interface=amiga and motor-delay= is configured
+ - Amiga: Respect MOTOR when motor-delay= is configured and disk ejected
+   - Previously the MOTOR signal was ignored when no disk inserted
+
+** v3.36 - 10 October 2022
+ - AT32F435: Fix SD card handling on boards which support it
+ - FF.CFG, OSD: New options osd-columns= and osd-display-order=
+ - Amiga: Improved pin 34 ID/RDY emulation
+   - Requires AT32F435 MCU and MOR jumper strap
+   - Requires FF.CFG options: interface=amiga, motor-delay=500
+
+** v3.35 - 4 August 2022
+ - AT32F435: Fix Quick Disk firmware
+
+** v3.34 - 4 July 2022
+ - AT32F435: Fix startup to MCU spec (LDO voltage, Flash clock divisor)
+ - AT32F435: Cache HFE and QD image data, since there is plenty of RAM
+ - Allow rotary encoder on pins PA13/PA14 on any board except QFN32 MCU
+ - io-test: Fix io-test alt firmware for modern Gotek boards
+
+** v3.33 - 20 June 2022
+ - Support new board SFRKC30.AT4.35
+ - Support new chip AT32F435 (288MHz M4, 256kB+ Flash, 384kB SRAM)
+ - New UPD file format and explanatory README: Please read!
+
+** v3.32 - 28 May 2022
+ - Fix 'oled-font=8x16' option (broken in release 3.31)
+ - Improve drive-select ISR performance
+   - Fixes issues with fast Amiga accelerators
+
+** v3.31 - 23 May 2022
+ - Fix Gotek drive detection with Amiga Kickstart ROM v3.2.1
+ - QD: FF.CFG alternative to JC jumper (no JC on SFRKC30.AT2 model)
+   - Place "interface=ibmpc" in FF.CFG
+ - OLED: New "-slow" modifier to slow down I2C bus for glitchy displays
+ - AUTOBOOT: Disallow writes to MBR, which can trash the USB drive
+
+** v3.30 - 26 January 2022
+ - IMG.CFG: New option step= allows to specify double-step operation
+ - FF.CFG: New option max-cyl= allows limiting head-step range
+ - SFRKC30 Gotek Models: Improved rotary support on new "KC30" header
+
+** v3.29 - 2 October 2021
+ - Support new Gotek board SFRKC30.AT2 using AT32F415KBU7-4 (QFN32)
+ - Support LQFP64 AT32F415RxT7 chips on existing "Enhanced Gotek" boards
+ - IMG: Fix default GAP2 for ED (eg. 2.88M) images
+ - IMG.CFG: New parameter gap2= to set Post-ID Gap value
+
+** v3.28 - 2 July 2021
+ - Gotek model SFR1M44-U100LQD: Fix occasional rotary encoder issue
+   - This model uses SFRKC40.AT4.7 PCB with encoder on new pin header
+   - Rotary encoder would occasionally not be detected at power on
+
+** v3.27 - 2 July 2021
+ - Fix v3.26 regression in button handling for GOEX hardware
+
+** v3.26 - 24 June 2021
+ - Support new Gotek board SFRKC30.AT4.7
+
+** v3.25 - 25 April 2021
+ - IMG, DSK: Fix track formatting on Artery microcontrollers
+   - Firmware would crash during format operations
+
+** v3.24 - 15 April 2021
+ - Beta support for new Artery microcontrollers used on latest Gotek models
+   - See the wiki for more details
+   - https://github.com/keirf/FlashFloppy/wiki/Gotek-Compatibility
+ - IMG: Fix skew/interleave on MSDMF (1.68M) images
+
+** v3.23 - 31 December 2020
+ - OLED/LCD: Fix missing folder name display row when inserting USB drive
+ - IMG.CFG: New examples for Roland, Sinclair QL, Kaypro
+ - IMG.CFG: Now supported in HxC-compat and indexed navigation modes
+ - IMG: Fix default 8-inch single-density data rate
+ - IMG, HFE: Support 255-cylinder image files
+
+** v3.22 - 17 November 2020
+ - Fix various crashes when mounting a Flash drive with stale IMAGE_A.CFG
+ - FAT FS: Support filesystems for which cluster table is "too small"
+   - Windows and Linux will mount these volumes, thus so should we
+ - FF.CFG: New OLED display-type option: -inverse
+   - Reverse-video effect (black text on white background)
+ - FF.CFG: display-order= option affects normal display modes only
+   - Ignored in all banner and menu modes, to avoid jumbled display
+ - FF.CFG: Fix display-type parsing for OLED-specific options
+   - Ignore them unless an OLED display is explicitly configured
+
+** v3.21 - 26 October 2020
+ - Support GUID Partition Table (GPT)
+   - Now support: GPT, MBR, and no partition table
+ - FatFS: Updated to R0.14, patchlevel 2
+ 
+** v3.20 - 15 October 2020
+ - Eject Menu: Replace Clone with Copy/Paste
+   - Allows an image to be copied to a different folder
+   - Navigation mode: Copy to selected folder by holding Select for 1.5s
+ - FF.CFG: New option "rotary=v2" to use v2.x encoder logic
+   - Fixes a very few encoders which don't work with stricter v3.x logic
+ - FF.CFG: New option "twobutton-action=htu"
+   - Implements hundreds/tens/units button actions of the factory firmware
+ - IMG.CFG: New parameters:
+   - tracks: Track-scoped parameter lists (geometry can vary by track)
+   - h: Override default IDAM Head field
+   - gap4a: Override default post-index track gap
+ - IMG.CFG: Tag names are now case insensitive
+ - IMG.CFG: Tag by file size and/or name
+ - IMG.CFG: Implement some example configurations under examples/Host/
+ - IMG: Fix some of the more bizarre default track geometries
+
+** v3.19 - 28 September 2020
+ - Amiga, ADF: Fix X-Copy verified writes with out-of-order sectors
+   - Remember the latest written sector order for current cylinder
+   - Forgotten after head step or disk eject but sufficient for X-Copy
+ - FF.CFG: New interface= options 'jppc' and 'jppc-hdout'
+   - jppc: pin2=nc, pin34=RDY, Japanese PC standard
+   - jppc-hdout: As above but pin2=HD_OUT, similar to ibmpc-hdout
+   - akai-s950 is retained as a legacy alias for jppc-hdout
+
+** v3.18 - 23 September 2020
+ - OLED/LCD: Fix potential minor display corruption
+   - Only seen with 128x64 OLED displays, bottom right corner
+ - alt/logfile: Write FFLOG.TXT to correct folder (root or FF/)
+ - IMG, DSK: Various cleanups to sector-write handling
+
+** v3.17 - 17 September 2020
+ - DSK: Fix infinite loop when trying to open a bad DSK image file
+ - Quick Disk: Restart read stream immediately after a write
+   - QD support now works on Sharp MZ-800
+ - IMG.CFG: Remove [default] stanza from example config
+   - Users copying the example file will no longer break their IMG files
+
+** v3.16 - 22 August 2020
+ - Rotary encoder: Velocity curve during image navigation
+   - Fast spin of the encoder skips multiple entries per click
+ - LCD/OLED/OSD: Fix image name when display is wider than 24 characters
+ - HFE: Fix double-step HFE images (broken since v3.14a)
+ - HxC Compat: Strip filename extension from image name display row
+
+** v3.15 - 23 July 2020
+ - New stable release series
+ - Improve rotary encoder robustness by sampling at 4x higher rate
+
+** v3.14a - 15 July 2020
+ - Properly implement non-existent tracks as empty / unformatted
+   - In particular this avoids writing tracks beyond end of disk image
+   - See issue #309: Could corrupt HFE images
+ - Akai IMG: Implement track skew (faster access and fixes Oberheim DPX)
+ - Speaker: Rate-limit step pulses at the speaker
+   - Avoids high-freq chirp in Direct Access mode and Gotek-aware fast loaders
+ - HxC Compat, v9-FF:
+   - Atari ST keymap is now QWERTY
+   - Remove unused settings from drive setup menu
+   - Fix the search/filter box (Esc and Backspace keys)
+
+** v3.13a - 13 March 2020
+ - FF.CFG: New option 'write-drain=eot'
+   - Fixes writes to Gotek on Amstrad PPC series (#320)
+ - FF.CFG: New option 'display-on-activity=sel'
+   - Turns on display whenever the Gotek drive is selected by host
+ - HFE: Respect double-step header flag
+   - Fixes 180k disk images on Amstrad PCW (#318)
+
+** v3.12a - 7 February 2020
+ - IMG: Support IBM 3174 1.2M and 2.4M formats (host=ibm-3174)
+ - HxC: Fix HxC mode with no file selector (AUTOBOOT.HFE)
+ - FF OSD: Fix dual-display operation with slower OLED
+   - Wait for OLED to initialise when display-type=oled...
+
+** v3.11a - 30 December 2019
+ - LCD/OLED: Fix subfolder name, as shown in 3- & 4-row displays
+   - Subfolder wasn't updated correctly when moving to parent (..) folder
+
+** v3.10a - 28 December 2019
+ - Bootloader: Wait for buttons to be pressed then released...
+   - ...before starting firmware update process
+   - Avoids an infinite loop when reprogramming Bootloader itself
+ 
+** v3.9a - 27 December 2019
+ - IMG: Fix density-select pin output for HD images
+   - Fixes 'pin02=dens' and 'interface=ibmpc-hdout'
+   - Bug has existed since v2.2a
+ - Rotary Encoder: Improve tracking
+   - Higher frequency, and better debounce algorithm
+
+** v3.8a - 10 December 2019
+ - USB: Fix buffer overflow when parsing string descriptors
+   - Fixes crash with recent SanDisk Ultra Fit drives
+ - HxC Compat, v8-FF: Fixes startup crash on Atari ST
+ - Amiga: Fixes for "interface = amiga" setting
+ - TR-DOS (TRD): Fix geometry when TR-DOS header is incomplete
+ - Quick Disk: Larger read/write window in default blank image
+ - GCC9 build fixes
+
+** v3.7a - 11 November 2019
+ - Quick Disk Bug Fixes
+   - Fix write offsets and lengths within QD track
+   - Filter ADF images from navigator: only QD images supported
+   - Extra logging in FFLOG.TXT for debug purposes
+ - Amiga AutoSwap new title: Gobliiiins
+   - Thanks to Arkadiusz Makarenko!
+   - https://github.com/keirf/flashfloppy-autoswap/wiki/Downloads
+
+** v3.6a - 13 October 2019
+ - Quick Disk Initial Release
+   - New firmware and blank QD image in alt/quickdisk
+   - Documentation in the Wiki
+ - Update HxC Compat to v7-FF
+   - Fix failure when booted on unmodded A1200 ESCOM boards
+
+** v3.5a - 9 October 2019
+ - New Main Menu: Press Prev/Next or Select with no Flash drive inserted
+   - Factory Reset, Firmware Update, OSD Config
+ - OSD: Must be updated to latest version: v1.7 or later!
+ - OSD: Receive Gotek button commands via I2C
+ - OSD: Default to 40 columns if no other display is connected
+ - TR-DOS (TRD): Fix geometry detection based on TR-DOS header
+
+** v3.4a - 25 September 2019
+ - FF OSD support
+   - Bus sharing with existing LCD/OLED display
+   - Gotek buttons can be remoted to FF OSD for OSD configuration
+
+** v3.3a - 8 July 2019
+ - FF.CFG: New Disk-Change Reset option: chgrst=delay-N
+   - Automatically clears the DSKCHG signal Nx0.5s after disk insertion
+   - chgrst=delay-3 fixes Disk Change on Ensoniq EPS synths
+ - Change head-step signal handling to reduce interrupt rate
+ - OLED/LCD: Fix current-folder display line for image-on-startup=init|static
+ - image-on-startup=static: The static image is now specified in INIT_A.CFG
+
+** v3.2a - 25 June 2019
+ - OLED: New default layout for 128x64 displays
+ - LCD: Support 20x4 character displays
+ - LCD: Row ordering is configurable
+   - FF.CFG: Rename oled-text= to display-order= to reflect this
+ - Eject menu: Confirmation required for Delete/Clone operations
+ - Trackball: Reduce jitteriness by adding simple inertia
+
+** v3.1a - 13 June 2019
+ - OLED: Text height and content can be configured (FF.CFG:oled-text=)
+   - New default for 128x64 displays presents a new third text row
+ - LCD/OLED: Present an action menu when an image is ejected
+   - Includes Clone and Delete Image operations
+
+** v3.0a - 10 June 2019
+ - Disk Change Reset: Emulate explicit Reset signal of certain vintage drives
+   - Requires a hardware modification and FF.CFG: chgrst=pa14
+ - Support ZHONGJY_TECH 2.23" 128x32 displays based on SSD1305 controller
+   - FF.CFG: display-type=oled-128x32-ztech
+
+** v2.13 - 7 June 2019
+ - HFE: Fix read buffering error
+ - Update HxC Compat to v6-FF
+   - More robust error checking on writes
+
+** v2.12 - 2 June 2019
+ - HFEv3: Support flaky/weak bytes
+ - LCD/OLED: Improve power-on initialisation robustness
+ - Roland: Direct support for *.OUT images
+ - IO-Test: New alternative firmware to test Gotek I/O pins
+   - https://github.com/keirf/flashfloppy/wiki/Testing-IO-Pins
+
+** v2.11a - 23 May 2019
+ - Simpler bootloader update process with all-in-one update file
+ - Update firmware via SD card (enhanced Goteks with SD card slot)
+ - FF.CFG: sort-priority= to prioritise folders vs files during navigation
+   - Default: Folders are listed before files
+
+** v2.10a - 20 May 2019
+ - Fix breakages since v2.2a:
+   - host=acorn: *.ADF handling
+   - host=tandy-coco: *.DSK handling
+
+** v2.9a - 17 May 2019
+ - FF.CFG: New option motor-delay= to provide emulation of motor behaviour
+   - Requires modification of a standard Gotek PCB (see Wiki: Hardware Mods)
+ - Debug logging: An alternative firmware is provided to log to FFLOG.TXT
+   - Find the alternative update file in alt/logfile/
+   - Use this for personal interest or as directed by me for debugging
+   - Not for general use!
+ - IMG/DSK: Better RAM handling (more space for mass-storage block cache)
+ - Code optimisation (MFM decode speeded up 4x)
+ - Small fix to generate INDEX signal when starting read near end of track
+
+** v2.8a - 10 May 2019
+ - DSK, IMG: Fix small error in generated MFM data
+ - Increase write buffer to 32kB, enough for a full high-density track
+   - More reliable whole-track writes, especially to HFE images
+ 
+** v2.7a - 23 April 2019
+ - Sort folders into alphabetical order during direct navigation
+   - FF.CFG: folder-sort= to modify this new default behaviour
+ - Fix memory corruption issues (stack overflow)
+ - ATR: Interleave sectors for best performance over slow SIO interface
+
+** v2.6a - 14 April 2019
+ - Fix feature breakages in v2.5a
+   - SSD/DSD/TRD auto-extend feature
+   - FF.CFG: eject-on-startup=yes feature
+ - Update HxC Compat to v5-FF
+
+** v2.5a - 12 April 2019
+ - Fragment-offsets cache implemented at the FAT filesystem layer
+ - Block cache implemented at the mass-storage volume layer
+   - Faster image selection/navigation in large folders
+   - Improved reliability in image handling (reduced access latencies)
+   - USB stick will usually stop flashing when drive is not being accessed!
+ - FF.CFG: New rotary input options
+   - 'trackball': Blackberry-style trackball
+   - 'buttons': Push-to-ground Prev/Next buttons
+
+** v2.4a - 9 April 2019
+ - This release fixes many raw track formats (SSD, DSD, OPD, VDK, ...)
+   - Thanks to John Gray for bug report, and testing!
+ - RAW: Fix FM track generation
+   - FM and IAM flags not plumbed through from front-end image handlers
+ - RAW: Fix interleaved/skewed track generation
+   - Data fetch not loading sectors from image file in the right order
+
+** v2.3a - 8 April 2019
+ - OLED: Auto-detect SSD1306 vs SH1106 display controller
+   - FF.CFG: 'display-type = ...-sh1106' is now redundant and ignored
+ - ATR: Fix readability of downloaded ATR images
+   - Invert data as it is read/written, mirroring the standard XF551 interface
+   - Thanks to Piotr for this report (using his XF551 clone)
+
+** v2.2a - 5 April 2019
+ - New image types supported:
+   - XDF: 3.5" HD eXtended Disk Format (1840kB)
+   - ATR: Atari 8-bit
+ - 7-Seg LED: Improved track display.
+   - Remove option 'led-trk' from FF.CFG. Track display mode is always on.
+ - OLED: Fix horizontal offset on SH1106 128x32 displays
+ - IMG.CFG: 'id' parameter simplified; 'sskew' renamed 'hskew' (head skew)
+ 
+** v2.1a - 26 March 2019
+ - IMG.CFG: Allow up to 256 sectors per track
+ - IMG.CFG: Split skew into per-cylinder and per-side values (cskew/sskew)
+ - IMG.CFG: Introduce image-file layout option (file-layout=<csv-list>):
+   - sequential,interleaved: Cylinder-first or side-first track ordering
+   - reverse-sideN: Side-N cylinders in reverse order (high to low) (N=0,1)
+   - sides-swapped: Ordering of disk sides is swapped in the image file
+ - 7-Segment LED: Display track number when an image is mounted
+   - FF.CFG: "display-type = led-trk"
+   - Displays slot number as usual during image selection/navigation
+   - First button press reverts to slot display; Next press begins navigation
+ - LCD/OLED: Display full cylinder number on displays wider than 16 columns
+   - Previously truncated at cylinder 99
+
+** v2.0a - 14 March 2019
+ - IMG: Allow geometry to be manually configured in new file IMG.CFG
+   - See examples/IMG.CFG for documentation
+   - Multiple formats can be defined; distinguished by image name tags
+ - IMG: Support FM mode with Index Address Mark (IAM)
+ - IMG: Support auto-configuration of GAP3 (post data gap) when using IMG.CFG
+ - FF.CFG: Fix parsing of comma-separated values
+ - Indexed Mode: Allow arbitrary image name after "DSKAnnnn" prefix
+   - eg. DSKA0000_myimage.img, DSKA0002_another.adf
+ - Indexed Mode: Allow the "DSKA" prefix to be changed (FF.CFG:indexed-prefix=)
+
+** v1.0 - 4 February 2019
+ - Game/demo AutoSwap-disks feature
+   - No manual disk swapping, at all!
+   - Requires patching of host software titles
+   - Amiga titles so far (github:keirf/flashfloppy-autoswap):
+     - Beneath a Steel Sky
+     - Indiana Jones and the Fate of Atlantis
+     - The Secret of Monkey Island
+     - Monkey Island 2: LeChuck's Revenge
+ - FF.CFG: New OLED display-type sib-option "-narrower"
+   - 16-character-wide display (c.w. "-narrow" 18-char-wide)
+ - PC98: Direct support for HDM image files
+ - HxC Compat: Small fixes to Amiga file selector
+
+** v0.15 - 8 January 2019
+ - Support Enhanced Gotek with SD card connector
+   - Board requirements are in the wiki (Hardware Mods)
+   - USB drive, if inserted, takes priority over SD card
+   - SD card is not supported for firmware update
+
+** v0.14 - 7 December 2018
+ - Direct Access: Fix broken sector writes (USB corruption)
+   - Primarily affected the CPC/ST file selectors (not Amiga)
+   - Broken since v0.12
+
+** v0.13 - 2 December 2018
+ - IMG: Support Casio FZ-1 (host=casio)
+ - IMG: Support SC Prophet 3000 (host=akai)
+ - Display D-A/DA/"Host Direct Access" in host file selector
+
+** v0.12 - 27 November 2018
+ - IMG: Support Nascom 1 & 2 (host=nascom)
+ - Direct Access: Support FM/SD access on cylinder 254
+ - Direct Access: Support CMD_SELECT_IMAGE (cmd #4)
+ - HxC Compat: Fix occasional "LBA Change Test Failed" error
+ - Improvements to ribbon-upside-down checks
+
+** v0.11 - 1 November 2018
+ - Detect and report upside-down data ribbon cable
+ - FF.CFG: Configurable OLED brightness/contrast (oled-contrast=)
+ - FF.CFG: Configurable head settle time (head-settle-ms=)
+ - FF.CFG: Fix comma-separated-list parsing (eg. rotary=)
+
+** v0.10 - 30 October 2018
+ - FF.CFG: Allow up/down inputs to be reversed
+   - Reverse original two buttons (twobutton-action=reverse)
+   - Reverse rotary encoder direction (rotary=reverse)
+ - Modified version numbering scheme and remove alpha status
+
+** v0.9.31a - 28 October 2018
+ - HFE: Sanity-check critical header fields
+ - FF.CFG: Better docs on pin02/pin34 options
+ - HxC Compat: File selector updates
+
+** v0.9.30a - 9 October 2018
+ - TI99: Fix V9T9/DSK double-sided images
+ - HxC Compat: Enter slot-based mode even with no AUTOBOOT.HFE
+ - HFE: Support HFEv2 images
+
+** v0.9.29a - 17 September 2018
+ - New and improved image handlers:
+   - ST: Fix 80-cyl single-sided images
+   - IMG: Kaypro (host=kaypro)
+   - IMG: MSX fix 40-cyl/5.25" formats (host=msx)
+   - IMG: PC-DOS fix missing IAM (host=pc-dos)
+   - IMG: All: Support long sectors (>1024k)
+ - Indexed mode: Don't require DSKA0000 image
+
+** v0.9.28a - 26 August 2018
+ - New image types supported:
+   - IMG: Fluke 9100 (host=fluke)
+   - MBD: Spectrum MB02
+ - LCD/OLED: Display folder names in brackets
+
+** v0.9.27a - 27 July 2018
+ - Direct Navigation: Fix hidden-file and dot-file filtering
+ - Direct Navigation: Filter __MACOSX/ resource-fork folders
+
+** v0.9.26a - 24 July 2018
+ - DSK (CPC): More fixes for copy-protected tracks
+ - New image types supported:
+   - JVC, DSK: Tandy Coco (host=tandy-coco)
+   - VDK: Dragon
+
+** v0.9.25a - 18 July 2018
+ - DSK (Spectrum, CPC, Sam Coupe): Fix tracks with little or no data in them
+ - FF.CFG: New options pin02= and pin34= allow precise interface configuration
+
+** v0.9.24a - 9 July 2018
+ - DSK (Spectrum, CPC, Sam Coupe): Bug fixes. Please upgrade!
+
+** v0.9.23a - 6 July 2018
+ - DSK (Spectrum, CPC): Support weak-data copy protection
+   - Used on most of the top commercial titles
+ - OLED: Utilise all rows on 128x64 displays
+ - LCD: Support up to 40x2 displays
+ - SSD, DSD (BBC): Add correct sector skew across tracks
+ - IMG: 1680kB DMF has 2:1 sector interleave
+
+** v0.9.22a - 20 June 2018
+ - OLED: Support SH1106 controller (1.3-inch displays)
+   - FF.CFG: display-type = oled-128x64-sh1106
+ - Support a wider range of rotary encoders
+   - FF.CFG: rotary = quarter | half | full
+ - New image types supported:
+   - D81: Commodore 64 1581
+   - IMG: DEC RX33, RX50 (host=dec)
+
+** v0.9.21a - 11 June 2018
+ - New default 6x13 font (Codec, by Chris Cannam)
+ - IMG: Support MSX (host=msx)
+ - Accelerate the stock Gotek buttons when using a rotary encoder
+   - FF.CFG: "twobutton-action = rotary-fast"
+ - HxC-Compat File Selectors:
+   - New font on Amiga and Atari ST
+   - Faster folder navigation on Amiga
+
+** v0.9.20a - 6 June 2018
+ - New image types supported:
+   - IMG: UKNC/DVK (Soviet PDP-11 clones) (host=uknc)
+   - IMG/FDI: NEC PC-98 (host=pc98)
+   - IMG: Common retro IBM/PC formats work out of the box
+   - IMG: Detect disk layout from PC DOS BPB (host=pc-dos)
+ - Auto-extend truncated images (SSD, DSD, TRD images only)
+   - "extend-image=no" disables this feature
+
+** v0.9.19a - 1 May 2018
+ - Amiga: Support high-density disk images
+   - ADF: 1760kB images
+   - Generate HD-ID pattern on pin 34 (interface=amiga)
+ - DSK: Fixes for Sam Coupe, and others with long tracks
+
+** v0.9.18a - 19 April 2018
+ - Fix HxC compatibility mode ("LBA change test failed")
+ - SDU: Improve geometry detection
+ - More bug fixes to read-data ring-buffer handling
+ - LED 888 Display: Show firmware version when right/up button pressed
+ - LCD/OLED: When browsing through images, reset scroll to start of each file
+
+** v0.9.17a - 17 April 2018
+ - New image types supported:
+   - Acorn DFS SSD/DSD
+   - Acorn ADFS 'S' (160kB)
+   - Akai 800kB (host=akai)
+   - Memotech IMG (host=memotech)
+   - SAB Diskette Utility (SDU)
+   - TI-99/4A DSK/V9T9 (host=ti99)
+ - New interface types supported:
+   - Akai S950 (interface=akai-s950)
+ - Bug fixes to read-data ring-buffer handling
+ - HFE: Improve write performance (batch reads/writes up to 8 blocks)
+ - OLED: Increase default initialisation probe to 3s
+ - USB: Respect volume write-protect status
+
+** v0.9.16a - 16 March 2018
+ - Support ADFS D/E/F images (suffix *.ADF, FF.CFG: host=acorn)
+ - Direct Access: Fix sector data CRCs
+ - Reliability improvements for Acorn systems (index-suppression=no)
+ - Rearrange floppy read/write buffering to avoid corruptions
+
+** v0.9.15a - 9 March 2018
+ - UI: Fix subfolder navigation when returning to parent folder (#66)
+ - OLED: Auto-detect OLED displays at I2C address 0x3d
+ - ST: Mimic TOS by applying track skew to ST image files (#44)
+ - 7-Seg LED: Allow write protection to be toggled as on LCD/OLED
+ - Support Ensoniq DD/HD custom IMG formats (host=ensoniq)
+ - Support IBM PC interface with density select (interface=ibmpc-hdout)
+ - Direct Access: Support track with fewer than 8 data sectors (#62)
+
+** v0.9.14a - 4 March 2018
+ - Fix write pipeline: record track number for delayed write processing
+ - General Music (GEM): New host option "host=gem" for direct IMG support
+ - Direct support for Spectrum Opus Discovery (OPD) image files
+ - HFE, ADF: Batch writeback to the USB drive where possible
+ - FF.CFG: Replace "index-during-seek" with "index-suppression"
+ - Direct Access: Restart read at correct track position after a write
+
+** v0.9.13a - 1 March 2018
+ - HFE: Emulate non-standard drive speeds (eg. Sony 600 RPM drive)
+ - HFE: Fix single-sector writes (broken since v0.9.8a)
+ - Direct Access: Support up to 64-sector track (Atari ST HxC Mount)
+ - Direct support for Spectrum TR-DOS (TRD) image files
+
+** v0.9.12a - 27 February 2018
+ - LCD/OLED: Long filenames scroll during navigation
+ - LCD/OLED: Make filename scrolling more configurable
+   - FF.CFG: {nav,display}-scroll-{rate,pause}
+ - Direct navigation: ".." returns to subfolder position within parent
+ - Fix head-seek settle time emulation
+ - ADF: Generate longer tracks, like a real Amiga would
+
+** v0.9.11a - 23 February 2018
+ - Fix Direct-Acesss mode (as used by HxC Autoboot, broken in v0.9.10a)
+
+** v0.9.10a - 22 February 2018
+ - New default OLED font 6x13 displays more text per line
+   - 7x16 font removed
+   - 8x16 font MAY be removed, let me know if you use it!!
+ - Narrow OLED view (default Gotek display cutout) supported
+   - FF.CFG: display-type = oled-128x32-narrow
+ - All images can be write-protected by default
+   - FF.CFG: write-protect = yes
+ - Write-protect switchable by holding eject for 2 seconds
+
+** v0.9.9a - 19 February 2018
+ - Fix write problems present in v0.9.8a (issue #53)
+ - Support rotary encoders with proper Gray code output
+   - FF.CFG: rotary = none | simple | gray
+
+** v0.9.8a - 8 February 2018
+ - Pipelined writes
+   - New writes are buffered while older ones are written to the USB drive
+   - More reliable write/format/disk-copy operation with slower USB drives
+ - FF.CFG: Allow OLED display to be rotated 180 degrees (upside down)
+   - display-type = oled-128x32-rotate
+ - FF.CFG: Support BBC Micro with 8271 controller
+   - Index pulses must continue during seek (index-during-seek = yes)
+   - Index pulses must not be delayed by seek (track-change = realtime)
+
+** v0.9.7a - 29 January 2018
+ - Performance & reliability improvements (eg. Github issues #35, #44):
+   - Sync data read after writes, prevents host missing next sector
+   - FF.CFG: Sync data read after track change (track-change=instant)
+     - Prevents host missing the first sector
+     - Old behaviour is configurable (track-change=realtime)
+ - FF.CFG: host=akai, support Akai synths with 1.6MB HD IMG files
+
+** v0.9.6a - 17 January 2018
+ - USB: Fix power-on initialisation for some USB sticks
+ - FAT: Write-protect image files marked with read-only attribute
+ - ST: Support 11-sector .ST images
+
+** v0.9.5a - 1 December 2017
+ - FF.CFG: New button assignment for rotary-encoder setup
+   - twobutton-action = rotary
+ - FF.CFG: Allow navigation mode to be specified
+   - nav-mode = native | indexed | default
+
+** v0.9.4a - 30 November 2017
+ - Automatic support for crippled 'diymore' OLED displays
+   - FF.CFG: New option display-probe-ms (replaces startup-delay)
+ - FF.CFG: New option twobutton-action allows eject on two-button press
+
+** v0.9.3a - 22 November 2017
+ - DSK: Fix disk write handling
+ - HFE: Improve read speed for HD images, reduce buffer underruns
+
+** v0.9.2a - 21 November 2017
+ - DSK: Improve handling of per-sector status codes
+ - Fix bugs in front-end file handling & folder navigation
+
+** v0.9.1a - 16 November 2017
+ - Acorn ADFS image support (ADM, ADL) [Daniel Jameson]
+ - Better detection of DSK image type (CPC-DSK vs raw sector file)
+
+** v0.9.0a - 15 November 2017
+** Amstrad CPC / Spectrum +3 DSK support
+ - DSK directly supported for read and write. Please report any issues!
+ - Improved error reporting
+ - New FF.CFG option "startup-delay = N"
+
+-------------------------------------------------------------------------
+
+** v0.8.8a - 7 November 2017
+ - Better error reporting (filesystem, media, power, image handling)
+ - Optional feature enhancements for Gotek clones
+ - Third button (select) may be used instead of prev/next for firmware
+   update and factory reset
+
+** v0.8.7a - 17 October 2017
+ - Start in ejected state if button pressed or image previously
+   ejected (when "image-on-startup = last")
+ - Divide the configuration flash page into multiple slots to
+   reduce the number of erase cycles when FF.CFG is repeatedly
+   modified
+
+** v0.8.6a - 13 October 2017
+ - New FF.CFG option image-on-startup
+ - Rename LASTDISK.IDX to IMAGE_A.CFG
+ - If image-on-startup is a folder, go directly into image selector
+
+** v0.8.5a - 13 October 2017
+ - Cache FF.CFG values in Flash memory for next power on, replacing
+   'factory defaults'. Restore defaults by pressing both buttons.
+ - Glitch filter for SIDE-select signal (Kingstener)
+ - Small improvements to FF.CFG option and value naming
+
+** v0.8.4a - 11 October 2017
+ - Bootloader OLED Display Fix (display was not enabled in update mode)
+ - Integrate 7x16 OLED font into main build, configurable in FF.CFG
+
+** v0.8.3a - 10 October 2017
+ - Always search for HXCSDFE.CFG/AUTOBOOT.HFE in root folder, even
+   when FF/ subfolder exists
+
+** v0.8.2a - 10 October 2017
+ - Parse FF.CFG file (see examples/FF.CFG for options)
+ - LCD/OLED: Don't display bogus 'folder depth' in Autoboot mode
+
+** v0.8.1a - 30 September 2017
+ - Fix config-less navigation with simple digit displays
+ - Respond to USB stick pull when in ejected state
+ - LCD/OLED: Increase activity timeout to 60 seconds
+ - LCD/OLED: Turn on display on drive activity
+
+** v0.8.0a - 29 September 2017
+** Subfolder support
+ - Navigate subfolders in config-less mode
+ - All config files can now be stored in FF subfolder
+ - LASTDISK.IDX file now stores full path to the selected image
+ - OLED: Display turns off after timeout (same as LCD backlight)
+ - Wrap slot number at 0 and max when navigating
+ - Easter egg for Anders Kling. Thanks for your support!
+
+-------------------------------------------------------------------------
+
+** v0.7.4a - 25 September 2017
+ - Fix RDATA handling, specifically when drive B on an Amstrad CPC.
+   Reported by ikonsgr (EAB / Ebay) -- Thanks!
+
+** v0.7.3a - 24 September 2017
+ - HxC: Respect autoboot- and ejected-on-startup flags
+ - Support 3rd button for eject and for immediate (re-)insert
+ - Do not wrap slot number at 0 and max.
+
+** v0.7.2a - 21 September 2017
+ - Fixes to track timing and index position
+ - Properly emulate a single-headed drive
+
+** v0.7.1a - 21 September 2017
+ - HFE: HFEv3 support
+ - HFE: Correctly set bitcell size for writes
+ - HFE: Reliability fix, read whole USB-disk sectors
+ - ADF: Support a wider range of ADF sizes
+
+** v0.7.0a - 19 September 2017
+** IMG/ST image handling. Rotary Encoder support.
+ - IMG and ST image files directly supported for read and write.
+   Please report any issues!
+ - Connect a rotary encoder to use in place of directional
+   buttons: Thanks to Fook42 (A1K/EAB). Documentation describes
+   how to connect.
+
+-------------------------------------------------------------------------
+
+** v0.6.3a - 18 September 2017
+ - Remove Amiga AUTOBOOT.HFE and config files from the distribution.
+   The HxC original files work fine, so forking is unnecessary.
+ - Resync index pulse after write handling: this dramatically
+   speeds up FAT filesystem access in the AUTOBOOT file selectors.
+ - Reorganise and update the documentation.
+
+** v0.6.2a - 13 September 2017
+ - Prettier 7x16 'narrow' LED font (Kingstener)
+ - Remember last-selected slot in no-config mode (LASTDISK.IDX file
+   must exist). Thanks to Fook42 (A1K/EAB).
+ - Ignore glitches on SIDE-select signal (fix for Eric Gustafson's A3000)
+ - Various fixes for file selector on Atari ST and Amstrad CPC
+ - Suppress index pulse when writing to USB stick. Makes slow writes
+   more reliable (avoids timeouts on the host).
+ - Optimised memory copying and clearing
+
+** v0.6.1a - 31 August 2017
+ - Support 2-digit LED display
+ - Suppress LCD update of side number when another drive is selected
+
+** v0.6.0a - 24 August 2017
+** PC Interface Support. OLED Fixes & Narrower Font Support.
+ - Allow PC Floppy Interface (DSKCHG on pin 34) to be selected via a
+   jumper at position JC. Default interface (no jumper at JC) remains
+   Shugart, as compatible with many non-PC systems including Amiga.
+ - Kingstener: Support narrower 7x16 OLED font. Allows entire display to be
+   visible through the 3-digit cutout in the Gotek case. This is a separate
+   firmware build, update file is in distribution subfolder alt/.
+ - OLED reliability fixes.
+
+-------------------------------------------------------------------------
+
+** v0.5.0a - 15 August 2017
+** Greater stability on A1200 and accelerated Amigas
+ - I/O latency reduced on drive select/deselect. Results in more reliable
+   drive detection on A1200, with and without accelerator, and on warm
+   and cold reboots.
+
+-------------------------------------------------------------------------
+
+** v0.4.4a - 14 August 2017
+ - Improvements to power-on initialisation: initialise the floppy
+   interface earlier, start on cylinder 0, and don't trigger a spurious
+   step command
+
+** v0.4.3a - 13 August 2017
+ - Fix DSKCHG handling. Should make disk insertion more reliable,
+   especially on Amiga with noclick patch.
+
+** v0.4.2a - 11 August 2017
+ - More efficient I2C handling for OLED and fix synch during flash
+   update process.
+
+** v0.4.1a - 11 August 2017
+ - Improve I2C robustness
+
+** v0.4.0a - 10 August 2017
+** 128x32 I2C OLED Display support
+ - Support for 0.91" I2C OLED (128x32, SSD1306 controller).
+ - Various optimisations and bug fixes.
+
+-------------------------------------------------------------------------
+
+** v0.3.2a - 7 August 2017
+ - Fix buffer overrun in HFE image handler when cannot read data from
+   USB stick fast enough.
+ - Update the Amiga AUTOBOOT.HFE with latest changes from upstream,
+   and bump version number.
+
+** v0.3.1a - 7 August 2017
+ - Fix buffer overflow when copying long filenames in no-config mode.
+
+** v0.3.0a - 6 August 2017
+** Config-less & indexed operation
+ - Operate with no AUTOBOOT.HFE (requires HXCSDFE.CFG in 'indexed
+   mode'): files must be called DSKA0000.HFE, DSKA0001.HFE, and so
+   on. ADF images are also supported.
+ - Operate with no HXCSDFE.CFG! Buttons will cycle through all valid
+   images in the USB root folder.
+ - Step-pulse speaker is supported on output JB. Recommend buffering
+   through an NPN transistor unless using a piezo speaker (high
+   resistance).
+ - Long filenames scroll on the 1602 LCD
+ - LCD backlight timer, scroll speed, and step speaker volume all
+   configured via HXCSDFE.CFG (when available)
+ - Hack workaround for X-Copy problems. Verified writes/copies are now
+   reliable!
+
+-------------------------------------------------------------------------
+
+** v0.2.1a - 26 July 2017
+** Fixes for LCD handling
+ - More reliable startup
+ - Fix crashes and deadlocks in operation
+ - More efficient command transmission (one I2C transaction for
+   successive commands)
+ - Support 0x38-0x3F I2C addresses
+
+** v0.2.a - 25 July 2017
+** 1602 LCD + Drive Logic Fixes
+ - 1602 LCD handling: Will recognise a 1602 LCD with "I2C backpack" as
+   used (and connected) for the usual "HxC LCD mod". Does not yet
+   scroll long filenames, this will be added shortly.
+ - Drive Logic: Will now play nicely in multi-drive systems and make
+   AmigaDOS much less confused (no more DF1-3:BAD type messages!)
+ - The bootloader is also modified to talk to the 1602 LCD: if you
+   want this feature then you must also update the bootloader by doing
+   a full serial or USB/DFU flash of the main HEX file.
+
+-------------------------------------------------------------------------
+
+** v0.1a - 21 July 2017
+** Initial release
+ - Works only as sole drive in a host system (eg disconnect external
+   drives!)

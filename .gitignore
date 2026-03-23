@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Python (FlashFloppy scripts)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Editor / OS noise
+*~
+*.swp
+
+# Local indexed-rack build output (regenerate from backup; see docs)
+ensoniq-vfx-sd/VFX-RACK-BUILD/
