@@ -14,7 +14,12 @@ Personal workspace for **Ensoniq VFX-SD** Gotek (FlashFloppy) setup: disk librar
 | [`flashfloppy/flashfloppy-3.44/`](flashfloppy/flashfloppy-3.44/) | FlashFloppy release tree (firmware hex, examples, `Host/Ensoniq/IMG.CFG`) |
 | [`ensoniq-mirage/`](ensoniq-mirage/) | Separate Mirage material (not part of active VFX-SD migration) |
 
-Generated rack builds go under `ensoniq-vfx-sd/VFX-RACK-BUILD/` when you create them; that path is gitignored.
+Generated rack builds are gitignored:
+
+- **`ensoniq-vfx-sd/VFX-RACK-BUILD/`** — full library: every backup image gets a slot (`DSKA0000.IMG` … exact indexed names only).
+- **`ensoniq-vfx-sd/VFX-RACK-BUILD-DEDUPED/`** — same order, but later byte-identical files (same SHA-256) are omitted.
+
+Behavior matches [`docs/correction-context.txt`](docs/correction-context.txt): no descriptive suffixes in filenames, no geometry `IMG.CFG` in the build (use `host=ensoniq` + HFE headers; add a verified label file only if you confirm 3.29 syntax).
 
 ### Build the indexed USB contents
 
@@ -24,7 +29,7 @@ From the repo root:
 python3 scripts/build_vfx_rack.py
 ```
 
-This scans `ensoniq-vfx-sd/VFX-SD Backup/`, deduplicates by SHA-256, copies unique images as `DSKA####_*.{IMG,HFE}`, writes merged `FF.CFG` / `IMG.CFG`, and emits `VFX_RACK_CATALOG.md`, `VFX_RACK_CATALOG.json`, and `DUPLICATES_REPORT.md` into `VFX-RACK-BUILD/`.
+Each folder receives `FF.CFG`, `DSKA####.{IMG,HFE}`, `VFX_RACK_CATALOG.md`, `VFX_RACK_CATALOG.csv`, `VFX_RACK_CATALOG.json`, `DUPLICATES_REPORT.md`, and `BUILD_README.txt`. Deploy with `cp DSKA* FF.CFG` to the USB root (see `BUILD_README.txt`); do not copy `IMAGE_A.CFG`.
 
 Checklist: [`docs/VFX-SD-TODO.md`](docs/VFX-SD-TODO.md).
 

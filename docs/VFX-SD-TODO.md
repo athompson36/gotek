@@ -1,6 +1,6 @@
 # VFX-SD Gotek — project checklist
 
-Progress is tracked here; the rack is built with `scripts/build_vfx_rack.py` into `ensoniq-vfx-sd/VFX-RACK-BUILD/` (gitignored).
+Progress is tracked here; racks are built with `scripts/build_vfx_rack.py` into `ensoniq-vfx-sd/VFX-RACK-BUILD/` (full) and `VFX-RACK-BUILD-DEDUPED/` (gitignored). Spec: [`docs/correction-context.txt`](correction-context.txt).
 
 ## Documentation
 
@@ -12,7 +12,7 @@ Progress is tracked here; the rack is built with `scripts/build_vfx_rack.py` int
 
 ## Automation & build
 
-- [x] Rack build script: `scripts/build_vfx_rack.py` (155 unique slots in current library; 239 exact duplicates skipped — mostly blank/template images)
+- [x] Rack build script: `scripts/build_vfx_rack.py` — **full** build (~394 slots) + **deduped** variant (~155 slots); exact `DSKA####.ext` names; no geometry `IMG.CFG`
 - [ ] Re-run script after any library change; commit catalog updates if you track them outside gitignore
 - [ ] Optional: one-command `make rack` or shell wrapper
 

@@ -18,3 +18,4 @@ venv/
 
 # Local indexed-rack build output (regenerate from backup; see docs)
 ensoniq-vfx-sd/VFX-RACK-BUILD/
+ensoniq-vfx-sd/VFX-RACK-BUILD-DEDUPED/
