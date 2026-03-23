@@ -16,10 +16,12 @@ Personal workspace for **Ensoniq VFX-SD** Gotek (FlashFloppy) setup: disk librar
 
 Generated rack builds are gitignored:
 
-- **`ensoniq-vfx-sd/VFX-RACK-BUILD/`** — full library: every backup image gets a slot (`DSKA0000.IMG` … exact indexed names only).
+- **`ensoniq-vfx-sd/VFX-RACK-BUILD/`** — full library: every backup image **except** excess `Blanks/*` reference files gets a slot (`DSKA0000.IMG` … exact indexed names only).
 - **`ensoniq-vfx-sd/VFX-RACK-BUILD-DEDUPED/`** — same order, but later byte-identical files (same SHA-256) are omitted.
 
-Behavior matches [`docs/correction-context.txt`](docs/correction-context.txt): no descriptive suffixes in filenames, no geometry `IMG.CFG` in the build (use `host=ensoniq` + HFE headers; add a verified label file only if you confirm 3.29 syntax).
+Behavior matches [`docs/correction-context.txt`](docs/correction-context.txt): exact `DSKA####.ext` names; **`Blanks/`** keeps at most **10** `BlankNNN.{HFE,IMG}` templates (lowest N first)—the rest stay in the backup as **reference-only** for formatting new disks (see `BLANKS_OMITTED.md` in each build).
+
+**`IMG.CFG`** in the build: official Ensoniq raw-.IMG geometry stanzas (from FlashFloppy examples; Mirage block omitted) plus `##` comments mapping blank template slots to `Blanks/BlankNNN` sources. Deploy it with `FF.CFG`. Full slot names: `VFX_RACK_CATALOG.md` / `.csv`.
 
 ### Build the indexed USB contents
 
@@ -29,7 +31,7 @@ From the repo root:
 python3 scripts/build_vfx_rack.py
 ```
 
-Each folder receives `FF.CFG`, `DSKA####.{IMG,HFE}`, `VFX_RACK_CATALOG.md`, `VFX_RACK_CATALOG.csv`, `VFX_RACK_CATALOG.json`, `DUPLICATES_REPORT.md`, and `BUILD_README.txt`. Deploy with `cp DSKA* FF.CFG` to the USB root (see `BUILD_README.txt`); do not copy `IMAGE_A.CFG`.
+Each folder receives `FF.CFG`, **`IMG.CFG`**, `DSKA####.{IMG,HFE}`, `VFX_RACK_CATALOG.md`, `VFX_RACK_CATALOG.csv`, `VFX_RACK_CATALOG.json`, `DUPLICATES_REPORT.md`, `BLANKS_OMITTED.md`, and `BUILD_README.txt`. Deploy with `cp DSKA* FF.CFG IMG.CFG` to the USB root (see `BUILD_README.txt`); do not copy `IMAGE_A.CFG`.
 
 Checklist: [`docs/VFX-SD-TODO.md`](docs/VFX-SD-TODO.md).
 

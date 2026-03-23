@@ -12,7 +12,7 @@ Progress is tracked here; racks are built with `scripts/build_vfx_rack.py` into 
 
 ## Automation & build
 
-- [x] Rack build script: `scripts/build_vfx_rack.py` — **full** build (~394 slots) + **deduped** variant (~155 slots); exact `DSKA####.ext` names; no geometry `IMG.CFG`
+- [x] Rack build script: `scripts/build_vfx_rack.py` — **full** + **deduped** builds; exact `DSKA####.ext`; max **10** `Blanks/BlankNNN` templates; **`IMG.CFG`** (Ensoniq .IMG geometry + blank-slot comments); `BLANKS_OMITTED.md`
 - [ ] Re-run script after any library change; commit catalog updates if you track them outside gitignore
 - [ ] Optional: one-command `make rack` or shell wrapper
 

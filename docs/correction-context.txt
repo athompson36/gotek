@@ -35,25 +35,17 @@ FlashFloppy indexed mode resolves files by exact indexed naming.
 
 ⸻
 
-2. IMG.CFG was used incorrectly
+2. IMG.CFG — corrected role (current build)
 
-The previous build wrote an IMG.CFG containing Ensoniq geometry blocks like:
+IMG.CFG is **deployed** with:
 
-[::819200]
-cyls = 80
-heads = 2
-...
+	•	**Ensoniq geometry stanzas** from the official FlashFloppy `examples/Host/Ensoniq/IMG.CFG` (by file size, e.g. `[::819200]`, `[::1638400]`, SuperDisk). These apply to raw `*.img` / `*.ima` / `*.dsk` as documented by FlashFloppy. The Mirage-only block is **omitted** in this VFX-SD project.
 
-That is not the descriptive label file we want for indexed display labeling.
+	•	**Comment block** (lines starting with `##`) mapping **blank template** indexed files (`DSKA####.HFE`) to their `Blanks/BlankNNN.HFE` sources. `.HFE` images carry layout in the HFE header; the comments are reference for humans, not duplicate geometry.
 
-For this project:
-	•	FF.CFG with host = ensoniq is already enough for raw .IMG Ensoniq geometry
-	•	.HFE files already contain their format information
-	•	IMG.CFG should be used for slot labels / indexed metadata, not geometry examples copied from docs
+Do **not** invent unverified FlashFloppy 3.29 “slot = OLED label” syntax. The **catalog** (`VFX_RACK_CATALOG.md` / `.csv`) remains the full friendly slot map.
 
-If label support is implemented, it must be implemented in the format actually expected by FlashFloppy for indexed labels on this device/firmware. Do not paste example geometry config into IMG.CFG again.
-
-If there is uncertainty about the exact label syntax supported on this Gotek/display combination, preserve a separate human-readable catalog and keep deployment-safe files minimal.
+FF.CFG `host = ensoniq` still applies; IMG.CFG supplements raw-.IMG matching where FlashFloppy expects these tags.
 
 ⸻
 
@@ -84,6 +76,7 @@ Correct Target Output
 The corrected build folder should contain only deployment-safe root files like:
 
 FF.CFG
+IMG.CFG
 DSKA0000.IMG
 DSKA0001.IMG
 DSKA0002.HFE
@@ -99,8 +92,7 @@ LABELS.txt
 
 Do not include IMAGE_A.CFG.
 
-If a label file is included, only include it if its syntax is known-correct for FlashFloppy 3.29 indexed labeling on this device.
-Otherwise omit it from deployment and rely on the catalog.
+IMG.CFG is included as above (geometry + comments). Omit any **additional** label syntax that is not verified for this firmware/display.
 
 ⸻
 
@@ -159,7 +151,7 @@ Suggested order after 000 and 001:
 	1.	Root-level library images
 	2.	ATW
 	3.	Ensoniq
-	4.	Blanks
+	4.	Blanks — **at most 10** files matching `BlankNNN.HFE` / `BlankNNN.IMG` (lowest N first). All other `Blanks/*` paths are **reference-only** for creating new disks and are **excluded** from the rack (listed in `BLANKS_OMITTED.md`).
 
 Or preserve a stable alphabetical path order after reserving 000 and 001.
 
@@ -298,9 +290,8 @@ Example deploy flow:
 diskutil eraseDisk FAT32 GOTEK MBRFormat /dev/disk18
 cp DSKA* /Volumes/GOTEK/
 cp FF.CFG /Volumes/GOTEK/
+cp IMG.CFG /Volumes/GOTEK/
 sync
-
-If a verified label file is generated, copy it too.
 
 Do not copy IMAGE_A.CFG.
 
@@ -325,6 +316,8 @@ Fix it by:
 	•	rebuilding all slots with exact DSKAxxxx.ext names only
 	•	preserving original image formats
 	•	keeping FF.CFG indexed + Ensoniq-safe
+	•	deploying IMG.CFG (Ensoniq .IMG geometry + blank-slot comment map; see above)
+	•	capping Blanks/ migration at **10** `BlankNNN` templates; ignoring the rest for the USB rack
 	•	excluding IMAGE_A.CFG
 	•	generating a catalog for friendly names
-	•	only adding an on-device label file if the exact syntax is verified, not guessed
+	•	not inventing unverified OLED label-line syntax beyond the catalog + documented IMG.CFG comments

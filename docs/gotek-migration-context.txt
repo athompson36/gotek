@@ -71,8 +71,9 @@ Important Conclusions
 	•	Avoid dependence on IMAGE_A.CFG for active use.
 	2.	Use FlashFloppy indexed mode.
 	•	Files should be named like DSKA0000.IMG, DSKA0001.IMG, etc.
-	3.	Use descriptive labels via IMG.CFG.
-	•	This preserves user-friendly names on the Gotek display while keeping the robustness of indexed mode.
+	3.	Use a catalog (and optional IMG.CFG) for human-readable slot mapping.
+	•	Indexed filenames stay exactly DSKA0000.IMG, DSKA0001.HFE, etc.
+	•	The generated IMG.CFG carries Ensoniq raw-.IMG geometry (by file size) and comment lines mapping blank-template slots; see scripts/build_vfx_rack.py.
 	4.	Do not create ZIPs, temp files, or edit files directly on the Gotek USB.
 	•	Always work from a local Mac folder.
 	•	Rebuild the USB from clean local files.
@@ -145,21 +146,16 @@ Priority is to ensure the final file definitely includes the lines above.
 
 IMG.CFG Strategy
 
-Use IMG.CFG to preserve human-readable labels.
+The build script emits IMG.CFG with two purposes:
 
-Example format:
+	1.	Ensoniq geometry for raw sector images — FlashFloppy `examples/Host/Ensoniq/IMG.CFG` stanzas such as `[::819200]` (800k) and `[::1638400]` (1.6M). These apply to `*.img` / `*.ima` / `*.dsk` by file size; Mirage-only blocks are omitted for this VFX-SD project.
+	2.	Blank template reference — leading `##` comment lines list which indexed file (`DSKA####.HFE`) corresponds to which `Blanks/BlankNNN.HFE` source. `.HFE` blanks carry track layout in the HFE header; comments are for your reference, not a second geometry definition.
 
-000 = VFX SD OS 2.10
-001 = Stock Library Disk
-002 = ATW Pads Vol 1
-003 = Ensoniq Factory Bank A
-004 = Blank Disk 01
+Do not assume unverified “slot = label” display syntax for FlashFloppy 3.29. The authoritative friendly map is `VFX_RACK_CATALOG.md` / `.csv`.
 
 Rules
-	•	Slot 000 must describe the OS disk
-	•	Labels should come from original descriptive filenames where possible
-	•	Keep labels concise enough for Gotek display readability
-	•	Avoid needlessly cryptic abbreviations unless necessary for display length
+	•	Deploy `IMG.CFG` next to `FF.CFG` on the USB root (or under `FF/` if you use that layout — then both configs go there).
+	•	Slot 000 remains the OS disk in the catalog.
 
 ⸻
 
@@ -171,8 +167,8 @@ Include
 	•	disk images in the backup root (e.g. VFX SD OS 2.10.img, Stock Library Disk.img)
 	•	disk images inside subfolders such as:
 	•	ATW
-	•	Blanks
 	•	Ensoniq
+	•	Blanks — **only** for migration: at most **10** files named `Blank001.HFE` … `Blank010.HFE` (lowest N first). The rest of `Blanks/` is **reference-only** for creating new disks and is **not** copied into the rack (see `BLANKS_OMITTED.md` in the build output).
 
 Exclude
 	•	IMAGE_A.CFG from the final indexed USB build
@@ -215,7 +211,8 @@ Use stable deterministic ordering, ideally:
 	1.	root-level named library disks
 	2.	ATW disks
 	3.	Ensoniq disks
-	4.	Blanks disks
+	4.	up to **10** Blanks/BlankNNN template disks (after all other content)
+	•	All other `Blanks/*` paths are intentionally excluded from the USB rack
 
 Or, alternatively, alphabetical by full relative path after reserving slot 000 for the OS disk.
 
@@ -256,10 +253,11 @@ Example:
 
 Containing:
 	•	FF.CFG
-	•	IMG.CFG
+	•	IMG.CFG (Ensoniq .IMG geometry + blank-slot comment map)
 	•	DSKA0000.IMG
 	•	DSKA0001.IMG
 	•	etc.
+	•	BLANKS_OMITTED.md (lists Blanks/ paths not migrated)
 
 2. Catalog file
 
@@ -327,6 +325,8 @@ cp IMG.CFG /Volumes/GOTEK/
 sync
 
 (If one of the DSKA globs matches nothing, the shell may error; run only the lines that apply to your build.)
+
+Catalog files (`VFX_RACK_CATALOG.md`, etc.) and `BLANKS_OMITTED.md` are optional on the USB; keep them in the repo or build folder for reference.
 
 Clean metadata if needed
 

@@ -7,7 +7,12 @@ Produces two outputs (gitignored):
   - VFX-RACK-BUILD-DEDUPED/  — skips later files with identical SHA-256 to an earlier slot
 
 Indexed filenames are exactly DSKA0000.IMG, DSKA0001.HFE, … (see docs/correction-context.txt).
-No IMG.CFG is written (host=ensoniq + HFE headers suffice; on-device labels only if verified).
+
+Blanks/: reference-only except up to MAX_BLANK_DISKS × BlankNNN.{HFE,IMG} (lowest N first).
+Other files under Blanks/ are excluded from the rack.
+
+Writes IMG.CFG: Ensoniq raw-.IMG geometry (from FlashFloppy examples) plus comment block mapping
+blank template slots (DSKA####) to source Blanks/BlankNNN paths. .HFE blanks use HFE header geometry.
 
 Does not modify the backup folder.
 """
@@ -28,8 +33,14 @@ BACKUP = REPO_ROOT / "ensoniq-vfx-sd" / "VFX-SD Backup"
 BUILD_FULL = REPO_ROOT / "ensoniq-vfx-sd" / "VFX-RACK-BUILD"
 BUILD_DEDUPED = REPO_ROOT / "ensoniq-vfx-sd" / "VFX-RACK-BUILD-DEDUPED"
 FF_TEMPLATE = BACKUP / "FF.CFG"
+ENSONIQ_IMG_CFG = (
+    REPO_ROOT / "flashfloppy" / "flashfloppy-3.44" / "examples" / "Host" / "Ensoniq" / "IMG.CFG"
+)
 
 IMAGE_SUFFIXES = {".img", ".hfe"}
+BLANKS_FOLDER = "Blanks"
+MAX_BLANK_DISKS = 10
+BLANK_NAME_RE = re.compile(r"^Blank(\d+)\.(hfe|img)$", re.IGNORECASE)
 
 
 def sha256_file(path: Path, chunk: int = 1 << 20) -> str:
@@ -54,6 +65,35 @@ def is_disk_image(path: Path) -> bool:
 
 def rel_from_backup(path: Path, backup: Path) -> Path:
     return path.relative_to(backup)
+
+
+def filter_blanks_folder(paths: list[Path], backup: Path) -> tuple[list[Path], list[str]]:
+    """
+    Blanks/ is for reference when creating new disks. Only up to MAX_BLANK_DISKS
+    files matching BlankNNN.{hfe,img} are included; others under Blanks/ are omitted.
+    Returns (paths_for_rack, omitted_relative_paths).
+    """
+    numbered: list[tuple[int, Path]] = []
+    others: list[Path] = []
+    omitted: list[str] = []
+
+    for p in paths:
+        rel = rel_from_backup(p, backup)
+        if len(rel.parts) >= 2 and rel.parts[0] == BLANKS_FOLDER:
+            m = BLANK_NAME_RE.match(rel.name)
+            if m:
+                numbered.append((int(m.group(1)), p))
+            else:
+                omitted.append(str(rel))
+            continue
+        others.append(p)
+
+    numbered.sort(key=lambda t: t[0])
+    kept = [p for _, p in numbered[:MAX_BLANK_DISKS]]
+    for _, p in numbered[MAX_BLANK_DISKS:]:
+        omitted.append(str(rel_from_backup(p, backup)))
+
+    return others + kept, omitted
 
 
 def collect_images(backup: Path) -> list[Path]:
@@ -146,9 +186,58 @@ def order_paths(paths: list[Path], backup: Path) -> list[Path]:
 
 def friendly_label(rel: Path) -> str:
     stem = strip_image_suffix(rel.name)
+    if len(rel.parts) >= 2 and rel.parts[0] == BLANKS_FOLDER:
+        m = BLANK_NAME_RE.match(rel.name)
+        if m:
+            return f"Blank {int(m.group(1)):02d} (template)"
     if len(rel.parts) == 1:
         return stem
     return str(rel.with_suffix("")).replace("/", " ")
+
+
+def ensoniq_geometry_for_img_cfg() -> str:
+    """VFX-SD–focused: Ensoniq 800k / 1.6M / SuperDisk; omit Mirage-only block."""
+    if not ENSONIQ_IMG_CFG.is_file():
+        return "# (Ensoniq IMG.CFG example missing from flashfloppy tree)\n"
+    lines = ENSONIQ_IMG_CFG.read_text(encoding="utf-8", errors="replace").splitlines()
+    for i, line in enumerate(lines):
+        if "Ensoniq Mirage" in line:
+            lines = lines[:i]
+            break
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def write_img_cfg(build_dir: Path, catalog_rows: list[dict]) -> None:
+    blank_rows = [
+        r
+        for r in catalog_rows
+        if str(r["source_relative_path"]).startswith(f"{BLANKS_FOLDER}/")
+        and BLANK_NAME_RE.match(Path(r["source_relative_path"]).name)
+    ]
+    lines = [
+        "## VFX-SD indexed rack — IMG.CFG",
+        "##",
+        "## 1) Ensoniq raw .IMG geometry by file size (applies to *.img / *.ima / *.dsk).",
+        "##    With FF.CFG host=ensoniq, DSKA0000.IMG / DSKA0001.IMG still match these tags.",
+        "## 2) Blank templates below are .HFE — layout is in the HFE image, not in these stanzas.",
+        "##    Comments document which indexed slot corresponds to which Blanks/BlankNNN source.",
+        "##",
+    ]
+    if blank_rows:
+        lines.append("## Blank template slots (max {} in migration):".format(MAX_BLANK_DISKS))
+        lines.append("##")
+        for r in blank_rows:
+            lines.append(
+                "##   slot {:>3}  {}  <=  {}".format(
+                    r["slot"],
+                    r["indexed_filename"],
+                    r["source_relative_path"],
+                )
+            )
+        lines.append("##")
+    lines.append("")
+    lines.append(ensoniq_geometry_for_img_cfg())
+    (build_dir / "IMG.CFG").write_text("\n".join(lines), encoding="utf-8")
 
 
 def clear_build_dir(d: Path) -> None:
@@ -202,6 +291,7 @@ def write_outputs(
     *,
     dedupe: bool,
     duplicate_groups_full: dict[str, list[str]],
+    blank_omitted: list[str],
 ) -> None:
     clear_build_dir(build_dir)
 
@@ -249,6 +339,8 @@ def write_outputs(
         encoding="utf-8",
     )
 
+    write_img_cfg(build_dir, catalog_rows)
+
     # Catalog .md
     lines = [
         "# VFX-SD indexed rack catalog",
@@ -270,6 +362,9 @@ def write_outputs(
         lines.append(f"**Files skipped as duplicates:** {len(skipped)}")
     else:
         lines.append("**Byte-identical groups:** see `DUPLICATES_REPORT.md` (all copies still included in this build).")
+    lines.append(
+        f"**Blanks/**: at most **{MAX_BLANK_DISKS}** `BlankNNN` templates included; see `BLANKS_OMITTED.md` and `IMG.CFG` comments."
+    )
     (build_dir / "VFX_RACK_CATALOG.md").write_text("\n".join(lines), encoding="utf-8")
 
     # Catalog .csv
@@ -292,9 +387,33 @@ def write_outputs(
             )
 
     (build_dir / "VFX_RACK_CATALOG.json").write_text(
-        json.dumps({"slots": catalog_rows, "skipped_duplicates": skipped}, indent=2),
+        json.dumps(
+            {
+                "slots": catalog_rows,
+                "skipped_duplicates": skipped,
+                "blanks_omitted_from_backup": blank_omitted,
+            },
+            indent=2,
+        ),
         encoding="utf-8",
     )
+
+    bom = [
+        "# Blanks/ — excluded from this rack",
+        "",
+        f"The `Blanks/` folder holds **reference** images for formatting new disks. Only the first "
+        f"**{MAX_BLANK_DISKS}** files matching `BlankNNN.{{HFE,IMG}}` (by lowest N) are migrated. "
+        "All other `Blanks/*` paths are omitted.",
+        "",
+        "## Omitted paths",
+        "",
+    ]
+    if blank_omitted:
+        bom.extend(f"- `{o}`" for o in blank_omitted)
+    else:
+        bom.append("(none)")
+    bom.append("")
+    (build_dir / "BLANKS_OMITTED.md").write_text("\n".join(bom), encoding="utf-8")
 
     # DUPLICATES_REPORT.md
     dup_lines = ["# Duplicate report", ""]
@@ -334,12 +453,11 @@ def write_outputs(
             f"Slots: {len(catalog_rows)}",
             "",
             "Deploy to USB root (FAT32 volume GOTEK):",
-            "  cp DSKA* FF.CFG /Volumes/GOTEK/",
+            "  cp DSKA* FF.CFG IMG.CFG /Volumes/GOTEK/",
             "  sync",
             "",
             "Do NOT copy IMAGE_A.CFG.",
-            "Do NOT copy IMG.CFG unless you add a verified FlashFloppy 3.29 label config (see docs/correction-context.txt).",
-            "Geometry: FF.CFG host=ensoniq for raw .IMG; .HFE carries layout internally.",
+            "IMG.CFG: Ensoniq .IMG geometry (by size) + comment map of blank template slots; .HFE blanks use HFE headers.",
             "",
             "FF.CFG: nav-mode=indexed, pin34=ready, image-on-startup=init, display-type=auto, autoselect-file-secs=2.",
             "If OLED misbehaves with display-type=auto, edit FF.CFG to your known-good OLED line (e.g. oled-128x32-narrow).",
@@ -360,16 +478,32 @@ def main() -> None:
         sys.exit(1)
 
     raw = collect_images(BACKUP)
-    ordered = order_paths(raw, BACKUP)
+    filtered, blank_omitted = filter_blanks_folder(raw, BACKUP)
+    ordered = order_paths(filtered, BACKUP)
     dup_groups = compute_duplicate_groups(ordered, BACKUP)
 
-    write_outputs(BUILD_FULL, ordered, BACKUP, dedupe=False, duplicate_groups_full=dup_groups)
-    write_outputs(BUILD_DEDUPED, ordered, BACKUP, dedupe=True, duplicate_groups_full=dup_groups)
+    write_outputs(
+        BUILD_FULL,
+        ordered,
+        BACKUP,
+        dedupe=False,
+        duplicate_groups_full=dup_groups,
+        blank_omitted=blank_omitted,
+    )
+    write_outputs(
+        BUILD_DEDUPED,
+        ordered,
+        BACKUP,
+        dedupe=True,
+        duplicate_groups_full=dup_groups,
+        blank_omitted=blank_omitted,
+    )
 
     n_full = len(ordered)
     n_dedup_slots = n_full - sum(len(g) - 1 for g in dup_groups.values())
     print(f"Full build:    {n_full} slots -> {BUILD_FULL}")
     print(f"Deduped build: {n_dedup_slots} slots -> {BUILD_DEDUPED}")
+    print(f"Blanks omitted from rack (reference / cap): {len(blank_omitted)}")
 
 
 if __name__ == "__main__":
