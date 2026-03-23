@@ -1,0 +1,330 @@
+VFX-SD Gotek Indexed Rack — Correction Context for Cursor
+
+Purpose
+
+Fix the previously generated VFX-RACK-BUILD so it works correctly with FlashFloppy 3.29 on the Ensoniq VFX-SD.
+
+The prior build is not correct for deployment as-is.
+
+⸻
+
+What Was Wrong In The Previous Build
+
+1. Indexed filenames were invalid for FlashFloppy indexed mode
+
+The previous build used filenames like:
+
+DSKA0000_VFX_SD_OS_2.10.IMG
+DSKA0001_Stock_Library_Disk.IMG
+DSKA0002_ATW_Colorado_VFXsdDemos.HFE
+
+That is wrong for indexed mode.
+
+Required rule
+
+Indexed files must be named exactly like:
+
+DSKA0000.IMG
+DSKA0001.IMG
+DSKA0002.HFE
+DSKA0003.HFE
+
+No extra suffixes, no descriptive text in the filename.
+
+FlashFloppy indexed mode resolves files by exact indexed naming.
+
+⸻
+
+2. IMG.CFG was used incorrectly
+
+The previous build wrote an IMG.CFG containing Ensoniq geometry blocks like:
+
+[::819200]
+cyls = 80
+heads = 2
+...
+
+That is not the descriptive label file we want for indexed display labeling.
+
+For this project:
+	•	FF.CFG with host = ensoniq is already enough for raw .IMG Ensoniq geometry
+	•	.HFE files already contain their format information
+	•	IMG.CFG should be used for slot labels / indexed metadata, not geometry examples copied from docs
+
+If label support is implemented, it must be implemented in the format actually expected by FlashFloppy for indexed labels on this device/firmware. Do not paste example geometry config into IMG.CFG again.
+
+If there is uncertainty about the exact label syntax supported on this Gotek/display combination, preserve a separate human-readable catalog and keep deployment-safe files minimal.
+
+⸻
+
+3. The build mixed two concerns into filenames
+
+The previous build tried to make filenames both:
+	•	valid indexed slot names
+	•	human-readable labels
+
+That does not work.
+
+Correct approach:
+	•	Keep filenames strictly indexed (DSKAxxxx.ext)
+	•	Store human-readable names in a catalog and, if supported cleanly, in the proper label config
+
+⸻
+
+4. The previous build likely over-pruned duplicates
+
+The duplicate report suggests many Blank###.HFE files matched a ROM image checksum, which is suspicious and should be re-verified before deletion or omission.
+
+Cursor must not assume the prior duplicate decisions were correct.
+
+⸻
+
+Correct Target Output
+
+The corrected build folder should contain only deployment-safe root files like:
+
+FF.CFG
+DSKA0000.IMG
+DSKA0001.IMG
+DSKA0002.HFE
+DSKA0003.HFE
+DSKA0004.HFE
+...
+
+Optional additional files:
+
+CATALOG.md
+CATALOG.csv
+LABELS.txt
+
+Do not include IMAGE_A.CFG.
+
+If a label file is included, only include it if its syntax is known-correct for FlashFloppy 3.29 indexed labeling on this device.
+Otherwise omit it from deployment and rely on the catalog.
+
+⸻
+
+Confirmed Working Constraint
+
+A manually created indexed file named exactly:
+
+DSKA0000.IMG
+
+loaded successfully on the real hardware.
+
+This is the strongest known-good behavior and should be treated as the reference standard.
+
+⸻
+
+Filename Rules
+
+Required
+
+Use exact indexed filenames only:
+
+DSKA0000.IMG
+DSKA0001.IMG
+DSKA0002.HFE
+DSKA0003.HFE
+...
+
+Notes
+	•	Preserve original extension type where appropriate
+	•	.IMG files stay .IMG
+	•	.HFE files stay .HFE
+	•	Use uppercase extensions in the final build
+	•	Slot numbers are four digits
+
+⸻
+
+Slot Assignment Rules
+
+Slot 000
+
+Reserve slot 000 for the VFX-SD OS disk.
+
+Preferred source match logic:
+	•	VFX SD OS 2.10.img
+	•	or previously validated DSKA0000.IMG if verified to be the same known-good OS image
+
+Slot 001
+
+Prefer the stock library disk.
+
+Remaining slots
+
+Assign remaining unique disks sequentially.
+
+Suggested order after 000 and 001:
+	1.	Root-level library images
+	2.	ATW
+	3.	Ensoniq
+	4.	Blanks
+
+Or preserve a stable alphabetical path order after reserving 000 and 001.
+
+Consistency matters more than the specific order.
+
+⸻
+
+Extension Handling Rules
+
+The source library contains both .IMG and .HFE images.
+
+Important
+
+Do not convert everything to one format during this correction pass.
+
+Use original formats as found:
+	•	raw Ensoniq .IMG files remain .IMG
+	•	.HFE images remain .HFE
+
+Final indexed naming examples:
+
+DSKA0000.IMG
+DSKA0001.IMG
+DSKA0002.HFE
+DSKA0003.HFE
+
+This avoids introducing unnecessary conversion risk.
+
+⸻
+
+FF.CFG Requirements
+
+The final FF.CFG must include these effective settings:
+
+interface = shugart
+host = ensoniq
+nav-mode = indexed
+pin34 = ready
+display-type = auto
+autoselect-file = yes
+image-on-startup = init
+
+Preserve other safe defaults unless they conflict.
+
+Do not require IMAGE_A.CFG.
+
+⸻
+
+Labeling Strategy
+
+Primary requirement
+
+The rack must be understandable without forcing the user to memorize raw slot numbers.
+
+Safe fallback
+
+Always generate a catalog file that maps:
+	•	slot number
+	•	indexed filename
+	•	display label / friendly name
+	•	original path
+	•	checksum
+
+Example fields:
+
+Slot	Indexed file	Friendly label	Source path
+000	DSKA0000.IMG	VFX SD OS 2.10	VFX SD OS 2.10.img
+001	DSKA0001.IMG	Stock Library Disk	Stock Library Disk.img
+002	DSKA0002.HFE	ATW Colorado VFXsdDemos	ATW/Colorado/VFXsdDemos.HFE
+
+If implementing on-device labels
+
+Only do so if Cursor can verify the exact supported FlashFloppy 3.29 syntax for indexed labels on this setup.
+
+If not verified, do not invent or guess a label-file format.
+Generate the catalog and stop there.
+
+⸻
+
+Duplicate Handling Rules
+
+The prior duplicate report may contain false positives or undesirable pruning decisions.
+
+New requirements
+	1.	Recompute checksums from source images
+	2.	Detect exact duplicates by checksum only
+	3.	Do not omit files merely because names are similar
+	4.	If duplicates are found, keep one canonical copy and report the others
+	5.	Be especially cautious with Blanks and factory disks
+
+Important
+
+Do not silently drop large groups of blanks unless the user explicitly wants aggressive deduplication.
+
+Preferred behavior:
+	•	produce a full build with all valid disks first
+	•	optionally provide a deduped build as a second variant
+
+⸻
+
+Required Deliverables
+
+Create a corrected build folder, for example:
+
+~/Documents/VFX-RACK-BUILD-CORRECTED/
+
+Containing:
+	•	FF.CFG
+	•	indexed disk images with exact names
+	•	VFX_RACK_CATALOG.md
+	•	VFX_RACK_CATALOG.csv
+	•	DUPLICATES_REPORT.md
+
+Optional:
+	•	a second deduped variant if clearly separated
+
+⸻
+
+Safety Rules
+	1.	Do not modify the original backup destructively
+	2.	Do not rename source files in place
+	3.	Do not include IMAGE_A.CFG in the final indexed deployment set
+	4.	Do not use descriptive text in indexed filenames
+	5.	Do not guess label-file syntax
+	6.	Do not rely on Finder/macOS metadata
+	7.	Exclude .DS_Store, ._*, __MACOSX, ZIP files
+
+⸻
+
+Deployment Rules
+
+When the corrected build is ready, deployment to USB should use only the clean root files.
+
+Example deploy flow:
+
+diskutil eraseDisk FAT32 GOTEK MBRFormat /dev/disk18
+cp DSKA* /Volumes/GOTEK/
+cp FF.CFG /Volumes/GOTEK/
+sync
+
+If a verified label file is generated, copy it too.
+
+Do not copy IMAGE_A.CFG.
+
+⸻
+
+Success Criteria
+
+The corrected build is successful when:
+	1.	Slot 000 loads the VFX-SD OS disk
+	2.	Indexed files use exact DSKAxxxx.ext naming only
+	3.	No file does not exist errors occur due to bad filenames
+	4.	The user has a readable catalog for slot mapping
+	5.	The build is reproducible and deployment-safe
+
+⸻
+
+Short Summary For Cursor
+
+The previous build was not deployment-correct because it used invalid indexed filenames and a misused IMG.CFG.
+
+Fix it by:
+	•	rebuilding all slots with exact DSKAxxxx.ext names only
+	•	preserving original image formats
+	•	keeping FF.CFG indexed + Ensoniq-safe
+	•	excluding IMAGE_A.CFG
+	•	generating a catalog for friendly names
+	•	only adding an on-device label file if the exact syntax is verified, not guessed
